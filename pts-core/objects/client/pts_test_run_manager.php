@@ -90,6 +90,10 @@ class pts_test_run_manager
 	{
 		return $this->is_pcqs;
 	}
+	public function set_tests_to_run($tests)
+	{
+		$this->tests_to_run = $tests;
+	}
 	public function do_dynamic_run_count()
 	{
 		return $this->do_dynamic_run_count;
