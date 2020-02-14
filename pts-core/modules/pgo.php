@@ -65,9 +65,9 @@ class pgo extends pts_module_interface
 
         // run the tests saving PRE-PGO results
         echo "Running test without PGO to generate baseline.\n";
-//        $run_manager->pre_execution_process();
-//        $run_manager->call_test_runs();
-//        $run_manager->post_execution_process();
+        $run_manager->pre_execution_process();
+        $run_manager->call_test_runs();
+        $run_manager->post_execution_process();
 
         // Split into cross validation sets
 
@@ -149,6 +149,7 @@ class pgo extends pts_module_interface
 
 
             // force install of tests with PGO generation bits...
+            echo "Running test with PGO instrumentation\n";
             self::$phase = 'GENERATE_PGO';
 
             // at least some say serial make ends up being better for PGO generation to not confuse the PGO process, the below override ensures -j 1
@@ -170,6 +171,7 @@ class pgo extends pts_module_interface
 
             // force re-install of tests, in process set PGO using bits -fprofile-dir=/data/pgo -fprofile-use=/data/pgo -fprofile-correction
             self::$phase = 'USE_PGO';
+            echo "Running test with PGO optimizations\n";
             pts_client::override_pts_env_var('NUM_CPU_CORES', 1);
             pts_client::override_pts_env_var('NUM_CPU_JOBS', 1);
             pts_test_installer::standard_install($to_run, true);
@@ -195,21 +197,18 @@ class pgo extends pts_module_interface
 		pts_file_io::mkdir($pgo_dir);
 
         // Add custom clang path in
-//        $clang_pass_folder_path = getenv("LLVM_PASS");
-        $clang_pass_folder_path = '/home/chris/programming/llvm-pass-skeleton/build/skeleton/libSkeletonPass.so';
-        $pass_string = ' -Xclang load -Xclang ' . $clang_pass_folder_path;
         switch (self::$phase) {
             case 'PRE_PGO':
                 break;
             case 'GENERATE_PGO':
-                putenv('CFLAGS=' . self::$stock_cflags . '-fprofile-generate=' . $pgo_dir . $pass_string);
-                putenv('CXXFLAGS=' . self::$stock_cxxflags . '-fprofile-generate=' . $pgo_dir . $pass_string);
+                putenv('CFLAGS=' . self::$stock_cflags . '-fprofile-generate=' . $pgo_dir);
+                putenv('CXXFLAGS=' . self::$stock_cxxflags . '-fprofile-generate=' . $pgo_dir);
                 break;
             case 'USE_PGO':
                 // TODO Make only the pass be used for PGO, no other PGO based optimizations
                 shell_exec('llvm-profdata-9 merge -output=' . $pgo_dir . 'code.profdata ' . $pgo_dir);
-                putenv('CFLAGS=' . self::$stock_cflags . '-fprofile-use=' . $pgo_dir . 'code.profdata ' . $pass_string);
-                putenv('CXXFLAGS=' . self::$stock_cxxflags . '-fprofile-use=' . $pgo_dir . 'code.profdata ' . $pass_string);
+                putenv('CFLAGS=' . self::$stock_cflags . '-fprofile-use=' . $pgo_dir . 'code.profdata');
+                putenv('CXXFLAGS=' . self::$stock_cxxflags . '-fprofile-use=' . $pgo_dir . 'code.profdata');
                 break;
         }
     }
