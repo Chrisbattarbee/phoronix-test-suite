@@ -206,7 +206,7 @@ class pgo extends pts_module_interface
                 break;
             case 'USE_PGO':
                 // TODO Make only the pass be used for PGO, no other PGO based optimizations
-                shell_exec('llvm-profdata-9 merge -output=' . $pgo_dir . 'code.profdata ' . $pgo_dir);
+                shell_exec('$PROFDATATOOL merge -output=' . $pgo_dir . 'code.profdata ' . $pgo_dir);
                 putenv('CFLAGS=' . self::$stock_cflags . '-fprofile-use=' . $pgo_dir . 'code.profdata');
                 putenv('CXXFLAGS=' . self::$stock_cxxflags . '-fprofile-use=' . $pgo_dir . 'code.profdata');
                 break;
