@@ -51,14 +51,42 @@ class pgo extends pts_module_interface
         $result_identifier = $run_manager->prompt_results_identifier();
         $run_manager->do_skip_post_execution_options();
 
-        // Also force a fresh install before doing any of the PGO-related args...
+       // Also force a fresh install before doing any of the PGO-related args...
         self::$phase = 'PRE_PGO';
-        pts_test_installer::standard_install($to_run, true);
+        pts_test_installer::standard_install($to_run, false);
 
         // Get all tests we could run
         $run_manager->initial_checks($to_run);
         $run_manager->load_tests_to_run($to_run);
         $tests = $run_manager->get_tests_to_run();
+
+        $num_tests_map = array();
+        for ($i = 0; $i < count($tests); $i ++) {
+            $benchmark = $tests[$i]->test_profile->get_identifier();
+            if (array_key_exists($benchmark, $num_tests_map)) {
+                $prev = $num_tests_map[$benchmark];
+                $num_tests_map[$benchmark] = $prev + 1;
+            } else {
+                $num_tests_map[$benchmark] = 1;
+            }
+        }
+
+        echo "Num Tests: " . count($tests);
+
+        $num_tests_map_indexed = array_values($num_tests_map);
+        $sumOverOne = 0;
+        $sum3OrMore = 0;
+        for ($i = 0; $i < count($num_tests_map_indexed); $i ++) {
+            if ($num_tests_map_indexed[$i] > 1) {
+                $sumOverOne += 1;
+            }
+            if ($num_tests_map_indexed[$i] >= 3) {
+                $sum3OrMore += 1;
+            }
+        }
+        echo "\nTotal number of benchmarks: " . count($num_tests_map);
+        echo "\nTotal number of benchmarks with two or more inputs: " . $sumOverOne;
+        echo "\nTotal number of benchmarks with three or more inputs: " . $sum3OrMore;
 
         // Save results?
         $run_manager->save_results_prompt();
