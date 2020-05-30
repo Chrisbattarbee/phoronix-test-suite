@@ -96,11 +96,9 @@ class pgo extends pts_module_interface
 
         // run the tests saving PRE-PGO results
         echo "Running test without PGO to generate baseline.\n";
-        /*
         $run_manager->pre_execution_process();
         $run_manager->call_test_runs();
         $run_manager->post_execution_process();
-        */
 
         // Split into cross validation sets
         if (count($tests) >= 3) {
