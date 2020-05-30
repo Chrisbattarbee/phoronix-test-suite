@@ -1,0 +1,14 @@
+pts/leveldb - Yes
+pts/graphics-magick - Has  fatal error: error in backend: Cannot emit physreg copy instruction
+pts/bullet - Yes
+pts/cpp-perf-bench - Yes
+pts/scimark2 - Potentially if we fix ccache bug https://www.phoronix.com/forums/forum/phoronix/phoronix-test-suite/30729-at-fedora17-phoronix3-8-failed-to-install-test-benchmarks
+pts/dav1d - Maybe with dependencies installed
+pts/libgav1 - Maybe seemed to compile without issue but did not run
+pts/tungsten - Takes a lot of time
+pts/aom-av1 - Maybe with dependencies
+pts/toybrot - Has  fatal error: error in backend: Cannot emit physreg copy instruction issue, same as graphics
+pts/smahasher - Seems to have the same ccache endless forking
+pts/basis - Does not appear to work
+pts/nettle - Cannot emit physreg copy instruction
+
