@@ -128,7 +128,7 @@ class pts_client
 		}
 
 		self::core_storage_init_process();
-		$p = pts_config::read_path_config('PhoronixTestSuite/Options/Installation/EnvironmentDirectory', '~/.phoronix-test-suite/installed-tests/');
+		$p = pts_config::read_path_config('PhoronixTestSuite/Options/Installation/EnvironmentDirectory', '/data/.phoronix-test-suite/installed-tests/');
 		if(phodevi::is_windows())
 		{
 			$p = str_replace('/', DIRECTORY_SEPARATOR, $p);
