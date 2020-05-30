@@ -37,6 +37,7 @@ class pgo extends pts_module_interface
         return array('benchmark' => 'pgo_benchmark');
     }
 
+    // Currently should only be ran with individual benchmarks, does not deal with a suit yet
     public static function pgo_benchmark($to_run)
     {
         self::$pgo_storage_dir = pts_client::create_temporary_directory('pgo', true);
@@ -71,8 +72,7 @@ class pgo extends pts_module_interface
             }
         }
 
-        echo "Num Tests: " . count($tests);
-
+        // This is just for debugging purposes and info
         $num_tests_map_indexed = array_values($num_tests_map);
         $sumOverOne = 0;
         $sum3OrMore = 0;
@@ -84,21 +84,25 @@ class pgo extends pts_module_interface
                 $sum3OrMore += 1;
             }
         }
+        echo "Num Tests: " . count($tests);
         echo "\nTotal number of benchmarks: " . count($num_tests_map);
         echo "\nTotal number of benchmarks with two or more inputs: " . $sumOverOne;
         echo "\nTotal number of benchmarks with three or more inputs: " . $sum3OrMore;
+
+        // Debugging and info code over
 
         // Save results?
         $run_manager->save_results_prompt();
 
         // run the tests saving PRE-PGO results
         echo "Running test without PGO to generate baseline.\n";
+        /*
         $run_manager->pre_execution_process();
         $run_manager->call_test_runs();
         $run_manager->post_execution_process();
+        */
 
         // Split into cross validation sets
-
         if (count($tests) >= 3) {
             echo "Performing cross validation with a pool test size of " . count($tests);
             $num_cross_validation_sets = 3;
@@ -116,19 +120,9 @@ class pgo extends pts_module_interface
 
             // Perform cross validation
             for ($i = 0; $i < $num_cross_validation_sets; $i++) {
-
-                // force install of tests with PGO generation bits...
                 self::$phase = 'GENERATE_PGO';
 
-                // at least some say serial make ends up being better for PGO generation to not confuse the PGO process, the below override ensures -j 1
-                pts_client::override_pts_env_var('NUM_CPU_CORES', 1);
-                pts_client::override_pts_env_var('NUM_CPU_JOBS', 1);
-
                 pts_test_installer::standard_install($to_run, true);
-
-                // restore env vars about CPU core/jobs count
-                pts_client::unset_pts_env_var_override('NUM_CPU_CORES');
-                pts_client::unset_pts_env_var_override('NUM_CPU_JOBS');
 
                 // run the tests in the training validation set, not saving the results, in order to generate the PGO profiles...
                 putenv('FORCE_TIMES_TO_RUN=1');
@@ -142,11 +136,7 @@ class pgo extends pts_module_interface
 
                 // force re-install of tests, in process set PGO using bits -fprofile-dir=/data/pgo -fprofile-use=/data/pgo -fprofile-correction
                 self::$phase = 'USE_PGO';
-                pts_client::override_pts_env_var('NUM_CPU_CORES', 1);
-                pts_client::override_pts_env_var('NUM_CPU_JOBS', 1);
                 pts_test_installer::standard_install($to_run, true);
-                pts_client::unset_pts_env_var_override('NUM_CPU_CORES');
-                pts_client::unset_pts_env_var_override('NUM_CPU_JOBS');
 
                 // run the tests saving results with " - PGO Trained on Validation Set X" postfix
                 $run_manager = new pts_test_run_manager(array('UploadResults' => false, 'SaveResults' => true, 'PromptForTestDescription' => false, 'RunAllTestCombinations' => false, 'PromptSaveName' => true, 'PromptForTestIdentifier' => true, 'OpenBrowser' => true), true);
@@ -229,8 +219,8 @@ class pgo extends pts_module_interface
             case 'PRE_PGO':
                 break;
             case 'GENERATE_PGO':
-                putenv('CFLAGS=' . self::$stock_cflags . '-fprofile-generate=' . $pgo_dir);
-                putenv('CXXFLAGS=' . self::$stock_cxxflags . '-fprofile-generate=' . $pgo_dir);
+                putenv('CFLAGS=' . self::$stock_cflags . ' -fprofile-generate=' . $pgo_dir . ' -Xclang -fprofile-instrument=llvm');
+                putenv('CXXFLAGS=' . self::$stock_cxxflags . ' -fprofile-generate=' . $pgo_dir. ' -Xclang -fprofile-instrument=llvm');
                 break;
             case 'USE_PGO':
                 // TODO Make only the pass be used for PGO, no other PGO based optimizations
