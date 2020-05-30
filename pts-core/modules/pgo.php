@@ -54,7 +54,7 @@ class pgo extends pts_module_interface
 
        // Also force a fresh install before doing any of the PGO-related args...
         self::$phase = 'PRE_PGO';
-        pts_test_installer::standard_install($to_run, false);
+        pts_test_installer::standard_install($to_run, true);
 
         // Get all tests we could run
         $run_manager->initial_checks($to_run);
