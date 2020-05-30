@@ -1706,7 +1706,7 @@ class pts_client
 		$tmpdir = pts_client::temporary_directory();
 		if($large_file_support && disk_free_space(PTS_USER_PATH) > disk_free_space($tmpdir))
 		{
-			$tmpdir = PTS_USER_PATH . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR;
+			$tmpdir = DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR;
 			pts_file_io::mkdir($tmpdir);
 		}
 
